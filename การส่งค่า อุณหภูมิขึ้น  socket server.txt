@@ -1,0 +1,146 @@
+การส่งค่า อุณหภูมิขึ้น  socket server
+
+#dht22_esp8266.py  # ใช้กับบอร์ด ESP8266
+
+
+from machine import Pin, I2C
+import time
+import dht
+
+######## set network
+import network
+import socket
+serverip = '172.20.10.4' #your ip
+port = 9500
+
+sta_if = network.WLAN(network.STA_IF)
+sta_if.active(True)
+scan_ip = sta_if.scan()
+print('WiFi:',scan_ip)
+time.sleep(3)
+sta_if.connect("iPhone", "aaa12345")
+time.sleep(3)
+network_status = sta_if.isconnected()
+time.sleep(3)
+print("STATUS:",sta_if.isconnected())
+ #sta_if.ifconfig()
+
+###########
+
+# DHT22
+d = dht.DHT22(Pin(2)) # PIN DTH22
+
+while True:       
+    d.measure()
+    temp = d.temperature()
+    humid = d.humidity()
+    time.sleep(2)
+	
+# ส่งค่าขึ้น sever
+    data = 'TEMP: {} °C \n HUMID: {} % RH'.format(temp,humid)
+    
+    if network_status == True: # ถ้ามีการเชื่อมต่อ WiFi จะทำงานใต้ if
+
+        server = socket.socket()
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+
+        server.connect((serverip,port))
+        server.send(data.encode('utf-8'))
+
+        data_server = server.recv(1024).decode('utf-8')
+        print('Data from Server: ', data_server)
+        server.close()	
+
+
+###############
+# server.py
+
+import socket
+
+serverip = '172.20.10.4' # your ip ของเครื่องเรา เช็คโดย ipconfig ใน cmd
+port = 9500
+
+while True:
+	server = socket.socket()
+	server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+
+	server.bind((serverip,port))
+	server.listen(1)
+
+	print('Wating for client....')
+	client, addr = server.accept() #accept connection from client
+	print('Connected from: ',addr)
+
+	data = client.recv(1024).decode('utf-8')
+	print('Message from client: ',data)
+
+	text = 'Server recieved your data'
+	client.send(text.encode('utf-8'))
+	#client.close()
+
+#-----------------------
+
+# GUI_IOT_TEMP.py
+
+from tkinter import *
+from tkinter import ttk
+
+import time
+import socket
+import threading
+
+
+from songline import Sendline
+token =  'KIkEeNfW20s0geXlrqLYj5N292dHQrkal4ZM6IWo3zI'
+m = Sendline(token)
+
+
+serverip = '172.20.10.4' #your ip
+port = 9500
+
+#------------------------------------------
+#####  ฟังก์ชั่น มัลติเทรด คือ ให้ทำงานพร้อมกัน runserver , GUI
+def Runserver():
+	while True:
+		server = socket.socket()
+		server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+
+		server.bind((serverip,port))
+		server.listen(5)
+		print('Wating for client....')
+
+		client, addr = server.accept()
+		print('Connected from: ',addr)
+		data = client.recv(1024).decode('utf-8')
+		print('Message from client: ',data)
+		
+		v_temptext.set(data)
+		#m.sendtext('{}'.format(data))
+
+		text = 'We received your Message!'
+		client.send(text.encode('utf-8'))
+		client.close()
+
+def RunserverThread():
+	task1 = threading.Thread(target=Runserver)
+	task1.start()
+
+
+
+#--------------------
+#      ส่วนหนัาตาโปรแกรม
+GUI = Tk()
+GUI.title('TEMP FROM Micro Pythom')
+GUI.geometry('600x300+200+150')
+
+v_temptext = StringVar()
+v_temptext.set('---TEMP AND HUMID---')
+L1 = ttk.Label(GUI,textvariable=v_temptext,foreground='yellow',background='black',font=('Impact',40),)
+L1.pack(pady=20)
+
+
+RunserverThread()
+
+GUI.mainloop()
+
+#-----------------------------
