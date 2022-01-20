@@ -6,9 +6,9 @@ import socket
 import threading
 
 
-from songline import Sendline
-token =  'KIkEeNfW20s0geXlrqLYj5N292dHQrkal4ZM6IWo3zI'
-m = Sendline(token)
+# from songline import Sendline
+# token =  'KIkEeNfW20s0geXlrqLYj5N292dHQrkal4ZM6IWo3zI'
+# m = Sendline(token)
 
 
 serverip = '172.20.10.5' #your ip
@@ -18,7 +18,6 @@ def Runserver():
 	while True:
 		server = socket.socket()
 		server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-
 		server.bind((serverip,port))
 		server.listen(5)
 		print('Wating for client....')
@@ -45,7 +44,7 @@ GUI.geometry('600x300+200+150')
 
 v_temptext = StringVar()
 v_temptext.set('---TEMP AND HUMID---')
-L1 = ttk.Label(GUI,textvariable=v_temptext,foreground='yellow',background='black',font=('Impact',40),)
+L1 = Label(GUI,textvariable=v_temptext,foreground='yellow',background='black',font=('Impact',40),)
 L1.pack(pady=20)
 
 
