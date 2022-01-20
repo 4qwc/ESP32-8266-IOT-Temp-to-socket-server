@@ -9,7 +9,7 @@ import socket
 import network
 time.sleep(3)
 
-serverip = '172.20.10.4' #your ip
+serverip = '172.20.10.5' #your ip
 port = 9500
 
 sta_if = network.WLAN(network.STA_IF)

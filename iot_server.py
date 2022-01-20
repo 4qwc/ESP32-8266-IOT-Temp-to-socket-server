@@ -2,7 +2,7 @@
 
 import socket
 
-serverip = '172.20.10.4' #your ip
+serverip = '172.20.10.5' #your ip for macbook
 port = 9500
 
 while True:
